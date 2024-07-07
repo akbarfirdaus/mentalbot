@@ -9,6 +9,6 @@ class KonsultasiController extends Controller
 {
     function index()
     {
-        return view('konsultasi.index');
+        return view('pointakses.admin.konsultasi.index');
     }
 }

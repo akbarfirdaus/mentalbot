@@ -33,29 +33,39 @@ class AuthController extends Controller
         $request->validate([
             'email' => 'required|email',
             'password' => 'required|min:6',
+        ], [
+            'email.required' => 'email wajib diisi',
+            'password.required' => 'password wajib diisi',
         ]);
 
-        $credentials = $request->only('email', 'password');
-        if (Auth::attempt($credentials)) {
-            $user = Auth::user();
+        /* $infologin = [
+            'email' => $request->email,
+            'password' => $request->password,
+        ]; */
 
-            // Cek peran pengguna dan arahkan sesuai dengan peran
-            if ($user->role == 'admin') {
-                return redirect()->route('dashboard')
-                    ->with('success', 'Anda berhasil login sebagai admin');
-            } elseif ($user->role == 'client') {
-                return redirect()->route('dashboard.client')
-                    ->with('success', 'Anda berhasil login sebagai client');
+        $user = User::where('email', $request->email)->first();
+        // dd($user->toArray());
+        /* $credentials = $request->only('email', 'password'); */
+
+        if ($user){
+            if (Hash::check($request->password, $user->password)) {
+            if ($user->email_verified_at != null) {
+                Auth::login($user);
+                if ($user->role === 'admin') {
+                    return redirect()->route('dashboard')->with('success', 'Halo Admin, Anda Berhasil Login');
+                } elseif ($user->role === 'client') {
+                    return redirect()->route('dashboard.client')->with('success', 'Halo Client, Anda Berhasil Login');
+                } else {
+                    Auth::logout();
+                    return redirect()->route('auth')->withErrors(['Akun Anda belum aktif. Harap verifikasi terlebih dahulu']);
+                }
+            } else {
+                return redirect()->route('auth')->withErrors(['Email belum diverifikasi. Silakan cek email untuk verifikasi']);
             }
-
-            return redirect()->route('auth')
-                ->withErrors('Email atau password salah')
-                ->withInput($request->except('password'));
+        } else {
+            return redirect()->route('auth')->withErrors(['Email atau password salah']);
         }
-
-        return redirect()->route('auth')
-            ->withErrors('Email atau password salah')
-            ->withInput($request->except('password'));
+        }
     }
 
     function create()
@@ -68,8 +78,11 @@ class AuthController extends Controller
         $str = Str::random(100);
         $request->validate([
             'fullname' => 'required|min:3',
+            'alamat' => 'required|string|max:255',
             'email' => 'required|unique:users|email',
-            'password' => 'required|min:6',
+            'password' => 'required|min:6|confirmed',
+            'usia' => 'required|integer',
+            'jenis_kelamin' => 'required|string',
         ], [
             'fullname.required' => 'fullname wajib diisi',
             'fullname.min' => 'Fullname minimal 3 karakter',
@@ -93,10 +106,10 @@ class AuthController extends Controller
 
         $details = [
             'nama' => $inforegister['fullname'],
-            'role' => 'user',
+            'role' => 'client',
             'datetime' => date('Y-m-d H:i:s'),
             'website' => 'Mentalbot',
-            'url' => route('verify', ['verify_key' => $str]),
+            'url' => 'http://' . request()->getHttpHost() . "/" . "verify/" . $inforegister['verify_key'],
         ];
 
         Mail::to($inforegister['email'])->send(new AuthMail($details));
@@ -105,15 +118,14 @@ class AuthController extends Controller
     }
     function verify($verify_key)
     {
-        $user = User::where('verify_key', $verify_key)->first();
+        $keyCheck = User::select('verify_key')
+            ->where('verify_key', $verify_key)
+            ->exists();
 
-        if ($user) {
 
-            $user->email_verified_at = now();
-            $user->verify_key = $verify_key; // Optional: Set null to prevent reuse
-            $user->save();
-
-            return redirect()->route('auth')->with('success', 'Verifikasi berhasil');
+        if ($keyCheck) {
+            $user = user::where('verify_key', $verify_key)->update(['email_verified_at' => date('Y-m-d H:i:s')]);
+            return redirect()->route('auth')->with('success', 'verifikasi berhasil. akun anda sudah aktif.');
         } else {
             return redirect()->route('auth')->withErrors('Keys tidak valid. Pastikan telah melakukan register')->withInput();
         }

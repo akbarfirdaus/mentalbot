@@ -10,16 +10,11 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        return view('dashboard.index');
+        return view('pointakses.admin.dashboard.index');
     }
 
-    public function bio(Request $request)
+    public function tabs()
     {
-        return view('dashboard.bio');
-    }
-
-    public function log()
-    {
-        return view('dashboard.log');
+        return view('pointakses.admin.dashboard.tabs');
     }
 }

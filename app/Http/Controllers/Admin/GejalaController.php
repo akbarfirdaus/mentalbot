@@ -22,7 +22,7 @@ class GejalaController extends Controller
     {
         $gejala = $this->db->gejala->find()->toArray();
         $gejalaLainnya = $this->db->gejalalainnya->find()->toArray();
-        return view('data_gejala.index', compact('gejala', 'gejalaLainnya'));
+        return view('pointakses.admin.data_gejala.index', compact('gejala', 'gejalaLainnya'));
     }
 
     public function store(Request $request)

@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use MongoDB\Laravel\Auth\User as Authenticatable;
@@ -30,6 +30,7 @@ class User extends Authenticatable
         'password',
         'role',
         'verify_key',
+        'email_verified_at',
     ];
 
     /**
@@ -37,12 +38,14 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
-    protected $hidden = [
-        'password',
-        'remember_token',
+    protected $hidden = [];
+
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
-    // Mutator untuk mengenkripsi password
     public function setPasswordAttribute($value)
     {
         $this->attributes['password'] = Hash::make($value);

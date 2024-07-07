@@ -22,7 +22,12 @@ class AuthMail extends Mailable
 
     public function build()
     {
-        return $this->subject('Verifikasi Email Anda')
-            ->view('email.verify');
+        return $this->subject('Verifikasi akun')
+            ->view('mail/verify');
+    }
+
+    public function Attachment() : array
+    {
+        return [];
     }
 }

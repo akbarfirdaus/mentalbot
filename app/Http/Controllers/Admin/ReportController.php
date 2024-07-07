@@ -9,6 +9,6 @@ class ReportController extends Controller
 {
     function index()
     {
-        return view('report.index');
+        return view('pointakses.admin.report.index');
     }
 }
